@@ -6,6 +6,50 @@ export default function App() {
   const [filmes, setFilmes] = useState([]);
   const [tela, setTela] = useState('home');
 
+
+ useEffect(()=>{
+     ListarFilmes();
+ },[] );
+
+ const ListarFilmes = ()=>{
+   fetch('http://Localhost:5000/api/filmes',{
+     method: 'GET'
+   })
+     .then(Response => Response.json())
+     .then(dados =>{
+       setFilmes(dados);
+     })
+     .catch (err => console.error(err));
+ }
+
+ const salvar = () => {
+  const form = {
+    titulo: filme,
+    idGenero: genero
+  };
+
+  const method = (idFilme === 0 ? 'POST' : 'PUT');
+  const urlRequest = (idFilme === 0 ? 'http://localhost:5000/api/filmes' : 'http://localhost:5000/api/filmes/' + idFilme);
+
+  fetch(urlRequest, {
+    method: method,
+    body: JSON.stringify(form),
+    headers: {
+      'content-type': 'application/json',
+      authorization: 'Bearer ' + localStorage.getItem('token-filmes')
+    }
+  })
+    .then(() => {
+      alert('Filme cadastrado');
+      setIdFilme(0);
+      setGenero('0');
+      setFilme('');
+      listarFilmes();
+    })
+    .catch(err => console.error(err));
+}
+
+
   switch (tela) {
     case 'home':
       return Home();
