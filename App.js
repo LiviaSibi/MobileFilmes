@@ -1,14 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
-import React, {useState} from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import React, {useState,useEffect} from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity,TextInput } from 'react-native';
+import {Picker} from '@react-native-picker/picker';
+
 
 export default function App() {
   const [filmes, setFilmes] = useState([]);
+  const [filme, setFilme] = useState('');
+  const [idFilme, setIdFilme] = useState(0);
+
+  const [generos,setGeneros] =useState([]);
+  const [idGenero,setIdGenero] = useState(0);
   const [tela, setTela] = useState('home');
 
 
  useEffect(()=>{
      ListarFilmes();
+     listarGenero();
  },[] );
 
  const ListarFilmes = ()=>{
@@ -22,10 +30,52 @@ export default function App() {
      .catch (err => console.error(err));
  }
 
+
+  const listarGenero = () => {
+    fetch('http://localhost:5000/api/Generos', {
+      method: 'GET'
+    })
+      .then(response => response.json())
+      .then(dados => {
+        setGeneros(dados);
+      })
+      .catch(err => console.error(err));
+  }
+
+
+ function atualizar(id){
+  fetch('http://localhost:5000/api/filmes/' + id,{
+    method: 'GET'
+  })
+    .then(response => response.json())
+    .then(dados => {
+      
+      setIdFilme(dados.idFilme);
+      setFilme(dados.titulo);
+      setIdFilme(dados.idFilme)
+      setIdGenero(dados.idGeneroNavigation.idGenero)
+      console.log(idFilme)
+    })
+    .catch(err => console.error(err))
+}
+
+function trash(id)  {
+  if (window.confirm('Deseja excluir o Gênero?')) {
+    fetch('http://localhost:5000/api/filmes/' + id, {
+      method: 'DELETE',
+    })
+      .then(() => {
+        listarFilmes();
+      })
+      .catch(err => console.error(err));
+  }
+}
+
+
  const salvar = () => {
   const form = {
     titulo: filme,
-    idGenero: genero
+    idGenero: idGenero
   };
 
   const method = (idFilme === 0 ? 'POST' : 'PUT');
@@ -35,15 +85,14 @@ export default function App() {
     method: method,
     body: JSON.stringify(form),
     headers: {
-      'content-type': 'application/json',
-      authorization: 'Bearer ' + localStorage.getItem('token-filmes')
+      'content-type': 'application/json'
     }
   })
     .then(() => {
       alert('Filme cadastrado');
       setIdFilme(0);
-      setGenero('0');
       setFilme('');
+      setIdGenero(0);
       listarFilmes();
     })
     .catch(err => console.error(err));
@@ -135,11 +184,49 @@ export default function App() {
             filmes.map((item, index) => {
               return(
                 <View key={index}>
-                  <Text style={styles.lista}>{item.titulo} - {item.genero}</Text>
-                </View>
+                <Text style={styles.lista}
+                  onPress={()=> atualizar(item.idFilme)}
+                >{item.titulo} - {item.idGeneroNavigation.nome}</Text>
+              </View>
               );
             })
           }
+          <View style={styles.inputs_container}>
+          <TextInput style={styles.inputs}
+                placeholder='Filme'
+                value={filme}
+                onChangeText={e => setFilme(e)}
+          />
+            <Picker 
+              style={styles.inputs}
+              enabled={idFilme === 0 && filme === ''}
+              onValueChange={(itemValue, itemIndex)=>{
+              setIdGenero(itemValue)
+              }}
+            >
+              {generos.map((item,index)=>{
+                return(
+                  <Picker.Item key={index} label={item.nome} value={item.idGenero} />
+                )
+              })}
+            </Picker>
+          </View>
+
+          <View style={styles.btns}>
+          <TouchableOpacity
+            style={styles.btnSalvar}
+            onPress={salvar}
+          >
+            <Text>Salvar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.btnSalvar}
+            onPress={()=>trash(idFilme)}
+            disabled={idFilme === 0 && filme === ''}
+          >
+            <Text>Deletar</Text>
+          </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -215,6 +302,28 @@ const styles = StyleSheet.create({
     fontSize: '15px',
     color: '#4B2142',
     marginBottom: '15px'
+  },
+   //Inputs
+   container_inputs:{
+    margin:6
+  },
+  inputs:{
+    height:30,
+    borderColor:'gray',
+    borderWidth:1,
+    margin:3
+  },
+
+  //Btn-Cadastrar/Salvar
+  btns:{
+    flexDirection: 'row'
+  },
+  btnSalvar:{
+    margin: 6,
+    alignItems: "center",
+    backgroundColor: "#ffddc2",
+    padding: 10,
+    paddingHorizontal:10
   },
 
   //FOOTER
