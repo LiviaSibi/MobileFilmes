@@ -53,7 +53,8 @@ export default function App() {
       setIdFilme(dados.idFilme);
       setFilme(dados.titulo);
       setIdFilme(dados.idFilme)
-      setIdGenero(dados.idGeneroNavigation.idGenero)
+      setIdGenero(dados.idGenero)
+      ListarFilmes();
       console.log(idFilme)
     })
     .catch(err => console.error(err))
@@ -65,7 +66,7 @@ function trash(id)  {
       method: 'DELETE',
     })
       .then(() => {
-        listarFilmes();
+        ListarFilmes();
       })
       .catch(err => console.error(err));
   }
@@ -93,7 +94,7 @@ function trash(id)  {
       setIdFilme(0);
       setFilme('');
       setIdGenero(0);
-      listarFilmes();
+      ListarFilmes();
     })
     .catch(err => console.error(err));
 }
@@ -186,7 +187,7 @@ function trash(id)  {
                 <View key={index}>
                 <Text style={styles.lista}
                   onPress={()=> atualizar(item.idFilme)}
-                >{item.titulo} - {item.idGeneroNavigation.nome}</Text>
+                >{item.titulo} - {item.genero.nome}</Text>
               </View>
               );
             })
@@ -199,7 +200,7 @@ function trash(id)  {
           />
             <Picker 
               style={styles.inputs}
-              enabled={idFilme === 0 && filme === ''}
+              enabled={idFilme === 0 && filme !== ''}
               onValueChange={(itemValue, itemIndex)=>{
               setIdGenero(itemValue)
               }}
